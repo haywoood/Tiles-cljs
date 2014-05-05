@@ -41,9 +41,9 @@
     om/IRender
     (render [this]
             (dom/div #js {:style #js {:width 600
-                                     :height 600
-                                     :border "1px solid gray"
-                                     :margin "0 auto"}}))))
+                                      :height 600
+                                      :border "1px solid gray"
+                                      :margin "0 auto"}}))))
 
 ;; Component that initializes the UI
 (defn app-view [app owner]
