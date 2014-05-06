@@ -1,8 +1,6 @@
 (ns tiels.core
   (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]
-            [clojure.data :as data]
-            [clojure.string :as string]))
+            [om.dom :as dom :include-macros true]))
 
 (enable-console-print!)
 
@@ -15,7 +13,7 @@
            :bgColor "yellow"
            :color "red"})
 
-(def legend-tiles [{:bgColor "yellow" :color "red"}
+(def legend-tiles [{:bgColor "maroon" :color "purple"}
                    {:bgColor "blue" :color "cyan"}
                    {:bgColor "teal" :color "pink"}])
 
@@ -61,11 +59,13 @@
                                       :display "inline-block"}}
         (om/build-all row-component app)))))
 
-(defn tile-legend [app owner]
+(defn tile-legend [tiles owner]
   (reify
     om/IRender
     (render [this]
-      (dom/div nil "fucking legend!"))))
+      (dom/div nil
+        (dom/div nil "LEGEND")
+        (om/build row-component tiles)))))
 
 ;; Component that initializes the UI
 (defn app-view [app owner]
@@ -73,7 +73,7 @@
     om/IRender
     (render [this]
       (dom/div #js {:style #js {:display "flex"}}
-        (om/build tile-legend app)
+        (om/build tile-legend (:tile-legend app))
         (om/build grid-view (:tile-grid app))))))
 
 ;; Make the 2D grid of default tiles
