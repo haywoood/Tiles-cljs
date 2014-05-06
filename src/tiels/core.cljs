@@ -1,16 +1,29 @@
 (ns tiels.core
   (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]))
+            [om.dom :as dom :include-macros true]
+            [clojure.data :as data]
+            [clojure.string :as string]))
 
 (enable-console-print!)
 
-(def app-state (atom {:tile-grid []}))
+(def app-state (atom {:tile-grid []
+                      :tile-legend []}))
 
 ;; Default tile
 (def tile {:width 8
            :height 15
            :bgColor "yellow"
            :color "red"})
+
+(def legend-tiles [{:bgColor "yellow" :color "red"}
+                   {:bgColor "blue" :color "cyan"}
+                   {:bgColor "teal" :color "pink"}])
+
+(defn create-tile [attrs]
+  (merge tile attrs))
+
+(defn create-multiple-tiles [props]
+  (mapv create-tile props))
 
 (defn tile-row
   "Creates a vector of n tiles"
@@ -48,22 +61,26 @@
                                       :display "inline-block"}}
         (om/build-all row-component app)))))
 
+(defn tile-legend [app owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div nil "fucking legend!"))))
+
 ;; Component that initializes the UI
 (defn app-view [app owner]
   (reify
     om/IRender
     (render [this]
-      (dom/div nil
-        (dom/div #js {:style #js {:margin "0 15px 0 20px"
-                                  :color "blue"
-                                  :fontWeight "bold"
-                                  :fontSize 13
-                                  :fontFamily "arial"
-                                  :display "inline-block"}} "U S A")
+      (dom/div #js {:style #js {:display "flex"}}
+        (om/build tile-legend app)
         (om/build grid-view (:tile-grid app))))))
 
 ;; Make the 2D grid of default tiles
-(swap! app-state assoc :tile-grid (make-grid 25 50))
+(swap! app-state assoc :tile-grid (make-grid 30 50))
+
+;; Make the various tiles to display in the legend!
+(swap! app-state assoc :tile-legend (create-multiple-tiles legend-tiles))
 
 ;; render app
 (om/root app-view
