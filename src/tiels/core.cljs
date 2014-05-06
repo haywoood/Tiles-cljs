@@ -4,13 +4,13 @@
 
 (enable-console-print!)
 
-(def app-state (atom {:tiles []}))
+(def app-state (atom {:tile-grid []}))
 
 ;; Default tile
-(def tile {:width 5
+(def tile {:width 8
            :height 15
-           :bgColor "red"
-           :color "white"})
+           :bgColor "yellow"
+           :color "red"})
 
 (defn tile-row
   "Creates a vector of n tiles"
@@ -22,38 +22,48 @@
   [row col]
   (into [] (take row (repeat (tile-row col)))))
 
-;; This has to change
 (defn tile-component [tile owner]
   (reify
     om/IRender
     (render [this]
-            (dom/div
-              #js {:style #js {:width (:width tile)
-                               :height (:height tile)
-                               :backgroundColor (:bgColor tile)
-                               :color (:color tile)}
-                   :className "tile"}
-              (dom/span #js {:className "dot"} ".")))))
+      (dom/div #js {:style #js {:width (:width tile)
+                                :height (:height tile)
+                                :backgroundColor (:bgColor tile)
+                                :color (:color tile)
+                                :textAlign "center"}}
+        (dom/span nil ".")))))
 
-;; This has to change
-(defn stage-view [app owner]
+(defn row-component [row owner]
   (reify
     om/IRender
     (render [this]
-            (dom/div #js {:style #js {:width 600
-                                      :height 600
-                                      :border "1px solid gray"
-                                      :margin "0 auto"}}))))
+      (apply dom/div #js {:style #js {:display "flex"}}
+        (om/build-all tile-component row)))))
+
+(defn grid-view [app owner]
+  (reify
+    om/IRender
+    (render [this]
+      (apply dom/div #js {:style #js {:margin "0 auto"
+                                      :display "inline-block"}}
+        (om/build-all row-component app)))))
 
 ;; Component that initializes the UI
 (defn app-view [app owner]
   (reify
     om/IRender
     (render [this]
-            (om/build stage-view app))))
+      (dom/div nil
+        (dom/div #js {:style #js {:margin "0 15px 0 20px"
+                                  :color "blue"
+                                  :fontWeight "bold"
+                                  :fontSize 13
+                                  :fontFamily "arial"
+                                  :display "inline-block"}} "U S A")
+        (om/build grid-view (:tile-grid app))))))
 
 ;; Make the 2D grid of default tiles
-(swap! app-state assoc :tiles (make-grid 25 50))
+(swap! app-state assoc :tile-grid (make-grid 25 50))
 
 ;; render app
 (om/root app-view
