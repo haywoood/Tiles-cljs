@@ -1,18 +1,21 @@
 (ns tiels.core
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]))
+            [om.dom :as dom :include-macros true]
+            [cljs.core.async :refer [put! chan <!]]))
 
 (enable-console-print!)
 
 ;; Default tile
-(def tile {:width 8
+(def tile {:type :grid
+           :width 8
            :height 15
            :bgColor "yellow"
            :color "red"})
 
-(def legend-tiles [{:bgColor "blue" :color "cyan"}
-                   {:bgColor "maroon" :color "purple"}
-                   {:bgColor "teal" :color "pink"}])
+(def legend-tiles [{:type :legend :bgColor "blue" :color "cyan"}
+                   {:type :legend :bgColor "maroon" :color "purple"}
+                   {:type :legend :bgColor "teal" :color "pink"}])
 
 (defn create-tile [attrs]
   (merge tile attrs))
@@ -33,7 +36,7 @@
 (defn make-tile-current [current tile]
   (.log js/console (:bgColor tile)))
 
-(defn tile-component [tile owner]
+(defn grid-component [tile owner]
   (reify
     om/IRender
     (render [this]
@@ -45,20 +48,39 @@
                                 :textAlign "center"}}
         (dom/span nil ".")))))
 
+(defn legend-component [tile owner]
+  (reify
+    om/IRenderState
+    (render-state [this {:keys [chan]}]
+      (dom/div #js {:onClick (fn [e] (put! chan @tile))
+                    :style #js {:width (:width tile)
+                                :height (:height tile)
+                                :backgroundColor (:bgColor tile)
+                                :color (:color tile)
+                                :textAlign "center"}}
+        (dom/span nil ".")))))
+
+(defmulti tile-component (fn [tile _] (:type tile)))
+
+(defmethod tile-component :legend
+  [tile owner] (legend-component tile owner))
+
+(defmethod tile-component :grid
+  [tile owner] (grid-component tile owner))
+
 (defn row-component [row owner]
   (reify
-    om/IRender
-    (render [this]
+    om/IRenderState
+    (render-state [this {:keys [chan]}]
       (apply dom/div #js {:style #js {:display "flex"}}
-        (om/build-all tile-component row)))))
+        (om/build-all tile-component row
+                      {:init-state {:chan chan}})))))
 
 (defn tile-legend [tiles owner]
   (reify
-    om/IRender
-    (render [this]
-      (dom/div nil
-        (dom/div nil "LEGEND")
-        (om/build row-component tiles)))))
+    om/IRenderState
+    (render-state [this {:keys [chan]}]
+      (om/build row-component tiles {:init-state {:chan chan}}))))
 
 (defn grid-view [tile-grid owner]
   (reify
@@ -71,14 +93,26 @@
 ;; Component that initializes the UI
 (defn app-view [app owner]
   (reify
-    om/IRender
-    (render [this]
+    om/IInitState
+    (init-state [_]
+      {:update-cur-tile (chan)})
+    om/IWillMount
+    (will-mount [_]
+      (let [update-cur-tile (om/get-state owner :update-cur-tile)]
+        (go (loop []
+          (let [tile (<! update-cur-tile)
+                new-tile (assoc tile :type :grid)]
+            (om/transact! app :current-tile #(merge % new-tile))
+            (recur))))))
+    om/IRenderState
+    (render-state [this {:keys [update-cur-tile]}]
       (dom/div #js {:style #js {:display "flex"}}
-        (om/build tile-legend (:tile-legend app))
+        (om/build tile-legend (:tile-legend app)
+                  {:init-state {:chan update-cur-tile}})
         (om/build grid-view (:tile-grid app))))))
 
 (def app-state (atom {:tile-grid []
-                      :current-tile (create-tile (first legend-tiles))
+                      :current-tile (create-tile {:bgColor "cyan"})
                       :tile-legend []}))
 
 ;; Make the 2D grid of default tiles
