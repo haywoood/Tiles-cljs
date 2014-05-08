@@ -1,5 +1,4 @@
 (ns tiels.core
-  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]))
 
@@ -48,11 +47,10 @@
 
 (defn row-component [row owner]
   (reify
-    om/IRenderState
-    (render-state [this {:keys [change]}]
+    om/IRender
+    (render [this]
       (apply dom/div #js {:style #js {:display "flex"}}
-        (om/build-all tile-component row
-                      {:init-state {:change change}})))))
+        (om/build-all tile-component row)))))
 
 (defn tile-legend [tiles owner]
   (reify
