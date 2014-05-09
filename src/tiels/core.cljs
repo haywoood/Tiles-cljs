@@ -13,9 +13,9 @@
            :bgColor "yellow"
            :color "red"})
 
-(def legend-tiles [{:type :legend :bgColor "blue" :color "cyan"}
-                   {:type :legend :bgColor "maroon" :color "purple"}
-                   {:type :legend :bgColor "teal" :color "pink"}])
+(def legend-tiles [{:type :legend :bgColor "red" :color "white"}
+                   {:type :legend :bgColor "white" :color "red"}
+                   {:type :legend :bgColor "blue" :color "white"}])
 
 (defn create-tile [attrs]
   (merge tile attrs))
