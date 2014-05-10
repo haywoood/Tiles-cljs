@@ -40,25 +40,25 @@
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:onClick (fn [e] (om/update! tile (:current-tile @app-state)))
-                    :style #js {:width (:width tile)
-                                :height (:height tile)
-                                :backgroundColor (:bgColor tile)
-                                :color (:color tile)
-                                :textAlign "center"}}
-        (dom/span nil ".")))))
+            (dom/div #js {:onMouseDown (fn [e] (om/update! tile (:current-tile @app-state)))
+                          :style #js {:width (:width tile)
+                                      :height (:height tile)
+                                      :backgroundColor (:bgColor tile)
+                                      :color (:color tile)
+                                      :textAlign "center"}}
+                     (dom/span nil ".")))))
 
 (defn legend-component [tile owner]
   (reify
     om/IRenderState
     (render-state [this {:keys [chan]}]
-      (dom/div #js {:onClick (fn [e] (put! chan @tile))
-                    :style #js {:width (:width tile)
-                                :height (:height tile)
-                                :backgroundColor (:bgColor tile)
-                                :color (:color tile)
-                                :textAlign "center"}}
-        (dom/span nil ".")))))
+                  (dom/div #js {:onClick (fn [e] (put! chan @tile))
+                                :style #js {:width (:width tile)
+                                            :height (:height tile)
+                                            :backgroundColor (:bgColor tile)
+                                            :color (:color tile)
+                                            :textAlign "center"}}
+                           (dom/span nil ".")))))
 
 (defmulti tile-component (fn [tile _] (:type tile)))
 
@@ -72,54 +72,47 @@
   (reify
     om/IRenderState
     (render-state [this {:keys [chan]}]
-      (apply dom/div #js {:style #js {:display "flex"}}
-        (om/build-all tile-component row
-                      {:init-state {:chan chan}})))))
+                  (apply dom/div #js {:style #js {:display "flex"}}
+                         (om/build-all tile-component row
+                                       {:init-state {:chan chan}})))))
 
-(defn tile-legend [tiles owner]
+(defn tile-legend [{:keys [tiles current-tile]} owner]
   (reify
+    om/IInitState
+    (init-state [_]
+                {:update-cur-tile (chan)})
+    om/IWillMount
+    (will-mount [_]
+                (let [update-cur-tile (om/get-state owner :update-cur-tile)]
+                  (go (while true
+                        (let [tile (<! update-cur-tile)
+                              new-tile (assoc tile :type :grid)]
+                          (om/update! current-tile new-tile))))))
     om/IRenderState
-    (render-state [this {:keys [chan]}]
-      (om/build row-component tiles {:init-state {:chan chan}}))))
+    (render-state [this {:keys [update-cur-tile]}]
+                  (om/build row-component tiles {:init-state {:chan update-cur-tile}}))))
 
 (defn grid-view [tile-grid owner]
   (reify
     om/IRender
     (render [this]
-      (apply dom/div #js {:style #js {:margin "0 auto"
-                                      :display "inline-block"}}
-        (om/build-all row-component tile-grid)))))
+            (apply dom/div #js {:style #js {:margin "0 auto"
+                                            :display "inline-block"}}
+                   (om/build-all row-component tile-grid)))))
 
 ;; Component that initializes the UI
 (defn app-view [app owner]
   (reify
-    om/IInitState
-    (init-state [_]
-      {:update-cur-tile (chan)})
-    om/IWillMount
-    (will-mount [_]
-      (let [update-cur-tile (om/get-state owner :update-cur-tile)]
-        (go (loop []
-          (let [tile (<! update-cur-tile)
-                new-tile (assoc tile :type :grid)]
-            (om/transact! app :current-tile #(merge % new-tile))
-            (recur))))))
-    om/IRenderState
-    (render-state [this {:keys [update-cur-tile]}]
-      (dom/div #js {:style #js {:display "flex"}}
-        (om/build tile-legend (:tile-legend app)
-                  {:init-state {:chan update-cur-tile}})
-        (om/build grid-view (:tile-grid app))))))
+    om/IRender
+    (render [this]
+            (dom/div #js {:style #js {:display "flex"}}
+                     (om/build tile-legend {:tiles (:tile-legend app)
+                                            :current-tile (:current-tile app)})
+                     (om/build grid-view (:tile-grid app))))))
 
-(def app-state (atom {:tile-grid []
+(def app-state (atom {:tile-grid (make-grid 30 60)
                       :current-tile (create-tile {:bgColor "cyan"})
-                      :tile-legend []}))
-
-;; Make the 2D grid of default tiles
-(swap! app-state assoc :tile-grid (make-grid 30 60))
-
-;; Make the various tiles to display in the legend!
-(swap! app-state assoc :tile-legend (create-multiple-tiles legend-tiles))
+                      :tile-legend (create-multiple-tiles legend-tiles)}))
 
 ;; render app
 (om/root app-view
