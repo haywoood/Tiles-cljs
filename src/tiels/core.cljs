@@ -6,17 +6,6 @@
 
 (enable-console-print!)
 
-;; Default tile
-(def tile {:type :grid
-           :width 8
-           :height 15
-           :bgColor "yellow"
-           :color "red"})
-
-(def legend-tiles [{:type :legend :bgColor "red" :color "white"}
-                   {:type :legend :bgColor "white" :color "red"}
-                   {:type :legend :bgColor "blue" :color "white"}])
-
 (defn create-tile [attrs]
   (merge tile attrs))
 
@@ -41,24 +30,29 @@
     om/IRender
     (render [this]
             (dom/div #js {:onMouseDown (fn [e] (om/update! tile (:current-tile @app-state)))
+                          :className "tile"
                           :style #js {:width (:width tile)
                                       :height (:height tile)
                                       :backgroundColor (:bgColor tile)
                                       :color (:color tile)
                                       :textAlign "center"}}
-                     (dom/span nil ".")))))
+                     (dom/span #js {:className "circle"
+                                    :style #js {:backgroundColor (:color tile)}}
+                               "")))))
 
 (defn legend-component [tile owner]
   (reify
     om/IRenderState
     (render-state [this {:keys [chan]}]
                   (dom/div #js {:onClick (fn [e] (put! chan @tile))
+                                :className "tile"
                                 :style #js {:width (:width tile)
                                             :height (:height tile)
                                             :backgroundColor (:bgColor tile)
-                                            :color (:color tile)
                                             :textAlign "center"}}
-                           (dom/span nil ".")))))
+                           (dom/span #js {:className "circle"
+                                          :style #js {:backgroundColor (:color tile)}}
+                                     "")))))
 
 (defmulti tile-component (fn [tile _] (:type tile)))
 
@@ -110,9 +104,22 @@
                                             :current-tile (:current-tile app)})
                      (om/build grid-view (:tile-grid app))))))
 
+;; Default tile
+(def tile {:type :grid
+           :width 8
+           :height 15
+           :bgColor "white"
+           :color "red"})
+
+(def legend-tiles (create-multiple-tiles [{:type :legend :bgColor "#444" :color "white"}
+                   {:type :legend :bgColor "red" :color "white"}
+                   {:type :legend :bgColor "pink" :color "white"}
+                   {:type :legend :bgColor "blue" :color "white"}
+                   {:type :legend :bgColor "yellow" :color "red"}]))
+
 (def app-state (atom {:tile-grid (make-grid 30 60)
-                      :current-tile (create-tile {:bgColor "cyan"})
-                      :tile-legend (create-multiple-tiles legend-tiles)}))
+                      :current-tile (assoc (nth legend-tiles 3) :type :grid)
+                      :tile-legend legend-tiles}))
 
 ;; render app
 (om/root app-view
