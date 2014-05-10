@@ -12,10 +12,18 @@
   :source-paths ["src"]
 
   :cljsbuild {
-    :builds [{:id "tiels"
-              :source-paths ["src"]
-              :compiler {
-                :output-to "tiels.js"
-                :output-dir "out"
-                :optimizations :none
-                :source-map true}}]})
+              :builds [{:id "tiels"
+                        :source-paths ["src"]
+                        :compiler {
+                                   :output-to "tiels.js"
+                                   :output-dir "out"
+                                   :optimizations :none
+                                   :source-map true}}
+                       {:id "release"
+                        :source-paths ["src"]
+                        :compiler {
+                                   :output-to "main.js"
+                                   :optimizations :advanced
+                                   :pretty-print false
+                                   :preamble ["react/react.min.js"]
+                                   :externs ["react/externs/react.js"]}}]})
