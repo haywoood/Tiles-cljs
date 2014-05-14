@@ -2,9 +2,13 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [cljs-uuid.core :as uuid]
             [cljs.core.async :refer [put! chan <!]]))
 
 (enable-console-print!)
+
+(defn uuid []
+  (uuid/make-random))
 
 (defn create-tile [attrs]
   (merge tile attrs))
@@ -105,17 +109,18 @@
                      (om/build grid-view (:tile-grid app))))))
 
 ;; Default tile
-(def tile {:type :grid
+(def tile {:id (uuid)
+           :type :grid
            :width 8
            :height 15
            :bgColor "white"
            :color "red"})
 
 (def legend-tiles (create-multiple-tiles [{:type :legend :bgColor "#444" :color "white"}
-                   {:type :legend :bgColor "red" :color "white"}
-                   {:type :legend :bgColor "pink" :color "white"}
-                   {:type :legend :bgColor "blue" :color "white"}
-                   {:type :legend :bgColor "yellow" :color "red"}]))
+                                          {:type :legend :bgColor "red" :color "white"}
+                                          {:type :legend :bgColor "pink" :color "white"}
+                                          {:type :legend :bgColor "blue" :color "white"}
+                                          {:type :legend :bgColor "yellow" :color "red"}]))
 
 (def app-state (atom {:tile-grid (make-grid 30 60)
                       :current-tile (assoc (nth legend-tiles 3) :type :grid)
