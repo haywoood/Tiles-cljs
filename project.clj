@@ -6,7 +6,8 @@
                  [org.clojure/clojurescript "0.0-2173"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [om "0.6.2"]
-                 [cljs-uuid "0.0.4"]]
+                 [cljs-uuid "0.0.4"]
+                 [datascript "0.1.4"]]
 
   :plugins [[lein-cljsbuild "1.0.2"]]
 
