@@ -8,9 +8,6 @@
 
 (enable-console-print!)
 
-(defn make-tile-current [current tile]
-  (.log js/console (:bgColor tile)))
-
 (defn grid-component [tile owner]
   (reify
     om/IRender
