@@ -1,95 +1,64 @@
 (ns tiels.core
-  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]
-            [datascript :as d]
-            [cljs.core.async :refer [put! chan <!]]
-            [tiels.state :refer [app-state]]))
+            [om.dom :as dom :include-macros true]))
 
 (enable-console-print!)
 
-(defn grid-component [tile owner]
-  (reify
-    om/IRender
-    (render [this]
-            (dom/div #js {:onMouseDown (fn [e] (om/update! tile (:current-tile @app-state)))
-                          :className "tile"
-                          :style #js {:width (:width tile)
-                                      :height (:height tile)
-                                      :backgroundColor (:bgColor tile)
-                                      :color (:color tile)
-                                      :textAlign "center"}}
-                     (dom/span #js {:className "circle"
-                                    :style #js {:backgroundColor (:color tile)}}
-                               "")))))
+(defn make-tile-current [tile selected-tile]
+  (om/update! tile selected-tile))
 
-(defn legend-component [tile owner]
+(defn tile [tile owner]
   (reify
     om/IRenderState
-    (render-state [this {:keys [chan]}]
-                  (dom/div nil
-                    (dom/div #js {:onClick (fn [e] (put! chan @tile))
-                                  :className "tile"
-                                  :style #js {:width (:width tile)
-                                              :height (:height tile)
-                                              :backgroundColor (:bgColor tile)
-                                              :textAlign "center"}}
+    (render-state [this {:keys [is-selected-tile selected-tile] :as state}]
+                  (let [selected-tile (om/get-shared owner :selected-tile)
+                        is-selected (= selected-tile tile)]
+                    (dom/div #js {:onMouseDown #(make-tile-current tile selected-tile)
+                                  :style #js {:width 8
+                                              :height 15
+                                              :backgroundColor (:bgcolor tile)}
+                                  :className (str "tile" (if is-selected
+                                                           " is-selected-tile"
+                                                           ""))}
                              (dom/span #js {:className "circle"
                                             :style #js {:backgroundColor (:color tile)}}
-                                       ""))
-                    (dom/div #js {:style #js {:color "yellow"}} "o")))))
+                                       ""))))))
 
-(defmulti tile-component (fn [tile _] (:type tile)))
 
-(defmethod tile-component :legend
-  [tile owner] (legend-component tile owner))
-
-(defmethod tile-component :grid
-  [tile owner] (grid-component tile owner))
-
-(defn row-component [row owner]
-  (reify
-    om/IRenderState
-    (render-state [this {:keys [chan]}]
-                  (apply dom/div #js {:style #js {:display "flex"}}
-                         (om/build-all tile-component row
-                                       {:init-state {:chan chan}})))))
-
-(defn tile-legend [{:keys [tiles current-tile]} owner]
-  (reify
-    om/IInitState
-    (init-state [_]
-                {:update-cur-tile (chan)})
-    om/IWillMount
-    (will-mount [_]
-                (let [update-cur-tile (om/get-state owner :update-cur-tile)]
-                  (go (while true
-                        (let [tile (<! update-cur-tile)
-                              new-tile (assoc tile :type :grid)]
-                          (om/update! current-tile new-tile))))))
-    om/IRenderState
-    (render-state [this {:keys [update-cur-tile]}]
-                  (om/build row-component tiles {:init-state {:chan update-cur-tile}}))))
-
-(defn grid-view [tile-grid owner]
+(defn grid [tiles owner {:keys [width] :as opts}]
   (reify
     om/IRender
-    (render [this]
-            (apply dom/div #js {:style #js {:margin "0 auto"
-                                            :display "inline-block"}}
-                   (om/build-all row-component tile-grid)))))
+    (render [_]
+            (apply dom/div #js {:className "grid"
+                                :style #js {:margin "0 auto"
+                                            :width width}}
+                   (om/build-all tile tiles)))))
 
 ;; Component that initializes the UI
 (defn app-view [app owner]
   (reify
     om/IRender
-    (render [this]
+    (render [_]
             (dom/div #js {:style #js {:display "flex"}}
-                     (om/build tile-legend {:tiles (:tile-legend app)
-                                            :current-tile (:current-tile app)})
-                     (om/build grid-view (:tile-grid app))))))
+                     (om/build grid (:tiles app)
+                               {:opts {:width (* 8
+                                                 (get-in app [:grid :columns]))}})))))
+
+(defn create-tiles [n]
+  (into [] (take n (repeat {:bgcolor "white" :color "red"}))))
+
+(def app-state (atom {:tiles (create-tiles (* 60 30))
+                      :grid {:rows 30 :columns 60}
+                      :selected-tile {:bgcolor "cyan"  :color "blue"}
+                      :legend-tiles [{:bgcolor "#444"   :color "white"}
+                                     {:bgcolor "blue"   :color "white"}
+                                     {:bgcolor "cyan"   :color "blue"}
+                                     {:bgcolor "red"    :color "white"}
+                                     {:bgcolor "pink"   :color "white"}
+                                     {:bgcolor "yellow" :color "red"}]}))
 
 ;; render app
 (om/root app-view
          app-state
-         {:target (. js/document (getElementById "app"))})
+         {:target (. js/document (getElementById "app"))
+          :shared {:selected-tile (:selected-tile @app-state)}})
