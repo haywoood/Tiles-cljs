@@ -10,6 +10,11 @@
 (defn make-tile-selected [tile _ {:keys [selected-tile] :as opts}]
   (om/update! selected-tile @tile))
 
+(defn undo []
+    (when (> (count @history) 1)
+      (reset! app-state (last @history))
+      (swap! history pop)))
+
 (defn tile [tile owner {:keys [selected-fn selected-tile] :as opts}]
   (reify
     om/IRender
@@ -36,6 +41,13 @@
                       {:opts {:selected-tile (:selected-tile app)
                               :selected-fn make-tile-current}})))))
 
+(defn history-view [app _]
+  (reify
+    om/IRender
+    (render [_]
+            (dom/div #js {:onMouseDown #(undo)}
+                     "<<<"))))
+
 (defn legend [app owner]
   (reify
     om/IRender
@@ -52,8 +64,11 @@
     om/IRender
     (render [_]
             (dom/div #js {:style #js {:display "flex"}}
-                     (om/build legend {:tiles (:legend-tiles app)
-                                       :selected-tile (:selected-tile app)})
+                     (dom/div #js {:style #js {:display "flex"
+                                               :flexDirection "column"}}
+                              (om/build legend {:tiles (:legend-tiles app)
+                                                :selected-tile (:selected-tile app)})
+                              (om/build history-view app))
                      (om/build grid {:tiles (:tiles app)
                                      :selected-tile (:selected-tile app)}
                                {:opts {:width (* 8
@@ -75,7 +90,13 @@
 (swap! app-state assoc :tiles (create-tiles (* (get-in @app-state [:grid :rows])
                                                (get-in @app-state [:grid :columns]))))
 
+(def history (atom [@app-state]))
+
 ;; render app
 (om/root app-view
          app-state
-         {:target (. js/document (getElementById "app"))})
+         {:tx-listen
+          (fn [data state]
+            (when-not (= (last @history) @state)
+              (swap! history conj (:old-state data))))
+          :target (. js/document (getElementById "app"))})
