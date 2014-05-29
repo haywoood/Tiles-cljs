@@ -9,20 +9,20 @@
 
 (defn tile [tile owner]
   (reify
-    om/IRenderState
-    (render-state [this {:keys [is-selected-tile selected-tile] :as state}]
-                  (let [selected-tile (om/get-shared owner :selected-tile)
-                        is-selected (= selected-tile tile)]
-                    (dom/div #js {:onMouseDown #(make-tile-current tile selected-tile)
-                                  :style #js {:width 8
-                                              :height 15
-                                              :backgroundColor (:bgcolor tile)}
-                                  :className (str "tile" (if is-selected
-                                                           " is-selected-tile"
-                                                           ""))}
-                             (dom/span #js {:className "circle"
-                                            :style #js {:backgroundColor (:color tile)}}
-                                       ""))))))
+    om/IRender
+    (render [_]
+            (let [selected-tile (om/get-shared owner :selected-tile)
+                  is-selected (= selected-tile tile)]
+              (dom/div #js {:onMouseDown #(make-tile-current tile selected-tile)
+                            :style #js {:width 8
+                                        :height 15
+                                        :backgroundColor (:bgcolor tile)}
+                            :className (str "tile" (if is-selected
+                                                     " is-selected-tile"
+                                                     ""))}
+                       (dom/span #js {:className "circle"
+                                      :style #js {:backgroundColor (:color tile)}}
+                                 ""))))))
 
 
 (defn grid [tiles owner {:keys [width] :as opts}]
