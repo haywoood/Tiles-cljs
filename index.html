@@ -1,52 +1,65 @@
-<html>
+<!doctype html>
+    <!--[if lt IE 7 ]> <html class="ie ie6 ie-lt10 ie-lt9 ie-lt8 ie-lt7 no-js" lang="en"> <![endif]-->
+    <!--[if IE 7 ]>    <html class="ie ie7 ie-lt10 ie-lt9 ie-lt8 no-js" lang="en"> <![endif]-->
+    <!--[if IE 8 ]>    <html class="ie ie8 ie-lt10 ie-lt9 no-js" lang="en"> <![endif]-->
+    <!--[if IE 9 ]>    <html class="ie ie9 ie-lt10 no-js" lang="en"> <![endif]-->
+    <!--[if gt IE 9]><!--><html class="no-js" lang="en"><!--<![endif]-->
+
     <head>
-        <style>
-            body {
-                background-color: #F5F5F5;
-            }
+      <meta charset="utf-8" />
+      <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+      <title>Tiels</title>
+      <meta name="title" content="" />
+      <meta name="description" content="" />
+      <meta name="author" content="" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <style>
+        body {
+            background-color: #F5F5F5;
+        }
 
-            #app {
-                width: 700px;
-                margin: 50px auto 0 auto;
-            }
+        #app {
+            width: 700px;
+            margin: 50px auto 0 auto;
+        }
 
-            .grid {
-              display: flex;
-              flex-wrap: wrap;
-            }
+        .grid {
+          display: flex;
+          flex-wrap: wrap;
+        }
 
-            .tile {
-                position: relative;
-                box-sizing: border-box;
-            }
+        .tile {
+            position: relative;
+            box-sizing: border-box;
+        }
 
-            .tile.is-selected-tile::before {
-              content: "×";
-              top: -13px;
-              position: absolute;
-              color: red;
-              font-size: 11px;
-            }
+        .tile.is-selected-tile::before {
+          content: "×";
+          top: -13px;
+          position: absolute;
+          color: red;
+          font-size: 11px;
+        }
 
-            .tile:hover {
-                border: 1px solid blue;
-                cursor: hand;
-                cursor: pointer;
-            }
+        .tile:hover {
+            border: 1px solid blue;
+            cursor: hand;
+            cursor: pointer;
+        }
 
-            .tile span {
-                position: absolute;
-                width: 2px;
-                height: 2px;
-                border-radius: 1px;
-                bottom: 3px;
-                right: 3px;
-            }
-        </style>
+        .tile span {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            border-radius: 1px;
+            bottom: 3px;
+            right: 3px;
+        }
+      </style>
     </head>
     <body>
         <div id="app"></div>
-        <script src="http://fb.me/react-0.9.0.js"></script>
+        <script src="react.js"></script>
         <script src="out/goog/base.js" type="text/javascript"></script>
         <script src="tiels.js" type="text/javascript"></script>
         <script type="text/javascript">goog.require("tiels.core");</script>
