@@ -20,8 +20,8 @@
     om/IRender
     (render [_]
             (dom/div #js {:onMouseDown #(selected-fn tile owner opts)
-                          :style #js {:width 8
-                                      :height 15
+                          :style #js {:width 10
+                                      :height 17
                                       :backgroundColor (:bgcolor tile)}
                           :className (str "tile" (if (:is-selected-tile tile)
                                                    " is-selected-tile"
@@ -45,8 +45,9 @@
   (reify
     om/IRender
     (render [_]
-            (dom/div #js {:onMouseDown #(undo)}
-                     "<<<"))))
+            (dom/div #js {:className "undo"
+                          :onMouseDown #(undo)}
+                     "↩"))))
 
 (defn legend [app owner]
   (reify
@@ -71,14 +72,14 @@
                               (om/build history-view app))
                      (om/build grid {:tiles (:tiles app)
                                      :selected-tile (:selected-tile app)}
-                               {:opts {:width (* 8
+                               {:opts {:width (* 10
                                                  (get-in app [:grid :columns]))}})))))
 
 (defn create-tiles [n]
   (into [] (take n (repeat {:bgcolor "white" :color "red"}))))
 
 (def app-state (atom {:tiles []
-                      :grid {:rows 30 :columns 60}
+                      :grid {:rows 28 :columns 45}
                       :selected-tile {:bgcolor "cyan"  :color "blue"}
                       :legend-tiles [{:bgcolor "#444"   :color "white"}
                                      {:bgcolor "blue"   :color "white"}
