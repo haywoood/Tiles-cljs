@@ -125,30 +125,35 @@
                                {:opts {:width (* 10
                                                  (get-in app [:grid :columns]))}})))))
 
+(defn create-rand-tiles [n]
+  (mapv #(rand-nth colors) (range n)))
+
 (defn create-tiles [n]
-  (into [] (take n (repeat {:bgcolor "white" :color "red"}))))
+  (mapv (fn [_] {:bgcolor "white" :color "red"}) (range n)))
+
+(def colors [{:bgcolor "#444"   :color "white"}
+             {:bgcolor "blue"   :color "white"}
+             {:bgcolor "cyan"   :color "blue"}
+             {:bgcolor "red"    :color "white"}
+             {:bgcolor "pink"   :color "white"}
+             {:bgcolor "yellow" :color "red"}
+             {:bgcolor "#64c7cc" :color "cyan"}
+             {:bgcolor "#00a64d" :color "#75f0c3"}
+             {:bgcolor "#f5008b" :color "#ffdbbf"}
+             {:bgcolor "#0469bd" :color "#75d2fa"}
+             {:bgcolor "#fcf000" :color "#d60000"}
+             {:bgcolor "#010103" :color "#fa8e66"}
+             {:bgcolor "#7a2c02" :color "#fff3e6"}
+             {:bgcolor "#07c3f7" :color "#0d080c"}
+             {:bgcolor "#f5989c" :color "#963e03"}
+             {:bgcolor "#ed1c23" :color "#fff780"}
+             {:bgcolor "#f7f7f7" :color "#009e4c"}
+             {:bgcolor "#e04696" :color "#9c2c4b"}])
 
 (def app-state (atom {:tiles []
                       :grid {:rows 30 :columns 50}
                       :selected-tile {:bgcolor "cyan"  :color "blue"}
-                      :legend-tiles [{:bgcolor "#444"   :color "white"}
-                                     {:bgcolor "blue"   :color "white"}
-                                     {:bgcolor "cyan"   :color "blue"}
-                                     {:bgcolor "red"    :color "white"}
-                                     {:bgcolor "pink"   :color "white"}
-                                     {:bgcolor "yellow" :color "red"}
-                                     {:bgcolor "#64c7cc" :color "cyan"}
-                                     {:bgcolor "#00a64d" :color "#75f0c3"}
-                                     {:bgcolor "#f5008b" :color "#ffdbbf"}
-                                     {:bgcolor "#0469bd" :color "#75d2fa"}
-                                     {:bgcolor "#fcf000" :color "#d60000"}
-                                     {:bgcolor "#010103" :color "#fa8e66"}
-                                     {:bgcolor "#7a2c02" :color "#fff3e6"}
-                                     {:bgcolor "#07c3f7" :color "#0d080c"}
-                                     {:bgcolor "#f5989c" :color "#963e03"}
-                                     {:bgcolor "#ed1c23" :color "#fff780"}
-                                     {:bgcolor "#f7f7f7" :color "#009e4c"}
-                                     {:bgcolor "#e04696" :color "#9c2c4b"}]}))
+                      :legend-tiles (into [] (sort first colors))}))
 
 (swap! app-state assoc :tiles (create-tiles (* (get-in @app-state [:grid :rows])
                                                (get-in @app-state [:grid :columns]))))
