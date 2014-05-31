@@ -13,70 +13,107 @@
       <meta name="description" content="" />
       <meta name="author" content="" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <style>
-        * {
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -khtml-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
+        <style>
+            * {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
 
-        body {
-            background-color: #F5F5F5;
-        }
+            body {
+                background-color: #F5F5F5;
+            }
 
-        #app {
-            width: 800px;
-            margin: 50px auto 0 auto;
-        }
+            #app {
+                width: 700px;
+                margin: 50px auto 0 auto;
+            }
 
-        .grid {
-          display: flex;
-          flex-wrap: wrap;
-        }
+            .grid {
+                display: flex;
+                flex-wrap: wrap;
+            }
 
-        .tile {
-            position: relative;
-            box-sizing: border-box;
-        }
+            .toolbar {
+                width: 110px;
+                margin-right: 20px;
+                display: flex;
+                flex-direction: column;
+            }
 
-        .tile.is-selected-tile::before {
-          content: "×";
-          top: -13px;
-          position: absolute;
-          color: red;
-          font-size: 11px;
-        }
+            .legend {
+                display: flex;
+                flex-wrap: wrap;
+            }
 
-        .tile:hover {
-            border: 1px solid blue;
-            cursor: hand;
-            cursor: pointer;
-        }
+            .legend .tile {
+                margin-bottom: 5px;
+            }
 
-        .tile span {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            border-radius: 1px;
-            bottom: 4px;
-            right: 4px;
-        }
+            .actions {
+                display: flex;
+                align-items: center;
+                margin-top: 10px;
+            }
 
-        .undo {
-          font-size: 20px;
-          margin-top: 20px;
-          color: #2B2B2B;
-        }
+            .actions div {
+                font-size: 16px;
+                color: #1818C5;
+                margin-right: 5px;
+            }
 
-        .undo:hover {
-          color: #CD16D5;
-          cursor: hand;
-          cursor: pointer;
-        }
-      </style>
+            .actions div:hover {
+                cursor: pointer;
+                cursor: hand;
+                color: orange;
+            }
+
+            .new-tile-icon.is-active {
+                color: red;
+            }
+
+            .tile {
+                position: relative;
+                box-sizing: border-box;
+            }
+
+            .tile.is-selected-tile::before {
+                content: "×";
+                top: -13px;
+                position: absolute;
+                color: red;
+                font-size: 11px;
+            }
+
+            .tile:hover {
+                border: 1px solid blue;
+                cursor: hand;
+                cursor: pointer;
+            }
+
+            .tile span {
+                position: absolute;
+                width: 2px;
+                height: 2px;
+                border-radius: 1px;
+                bottom: 4px;
+                right: 4px;
+            }
+
+            input {
+                border: 2px solid #ddd;
+                background-color: transparent;
+                color: #535353;
+            }
+
+            .new-tile {
+                width: 60px;
+                outline: none;
+            }
+        </style>
     </head>
     <body>
         <div id="app"></div>
