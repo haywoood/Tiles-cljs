@@ -150,13 +150,10 @@
              {:bgcolor "#f7f7f7" :color "#009e4c"}
              {:bgcolor "#e04696" :color "#9c2c4b"}])
 
-(def app-state (atom {:tiles []
+(def app-state (atom {:tiles (create-tiles 1500)
                       :grid {:rows 30 :columns 50}
                       :selected-tile {:bgcolor "cyan"  :color "blue"}
-                      :legend-tiles (into [] (sort first colors))}))
-
-(swap! app-state assoc :tiles (create-tiles (* (get-in @app-state [:grid :rows])
-                                               (get-in @app-state [:grid :columns]))))
+                      :legend-tiles colors}))
 
 (def history (atom [@app-state]))
 
