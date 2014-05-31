@@ -52,7 +52,7 @@
   (reify
     om/IInitState
     (init-state [_]
-      {:value ""})
+      {:value "#"})
 
     om/IRenderState
     (render-state [_ state]
@@ -137,7 +137,18 @@
                                      {:bgcolor "red"    :color "white"}
                                      {:bgcolor "pink"   :color "white"}
                                      {:bgcolor "yellow" :color "red"}
-                                     {:bgcolor "#64c7cc" :color "cyan"}]}))
+                                     {:bgcolor "#64c7cc" :color "cyan"}
+                                     {:bgcolor "#00a64d" :color "#75f0c3"}
+                                     {:bgcolor "#f5008b" :color "#ffdbbf"}
+                                     {:bgcolor "#0469bd" :color "#75d2fa"}
+                                     {:bgcolor "#fcf000" :color "#d60000"}
+                                     {:bgcolor "#010103" :color "#fa8e66"}
+                                     {:bgcolor "#7a2c02" :color "#fff3e6"}
+                                     {:bgcolor "#07c3f7" :color "#0d080c"}
+                                     {:bgcolor "#f5989c" :color "#963e03"}
+                                     {:bgcolor "#ed1c23" :color "#fff780"}
+                                     {:bgcolor "#f7f7f7" :color "#009e4c"}
+                                     {:bgcolor "#e04696" :color "#9c2c4b"}]}))
 
 (swap! app-state assoc :tiles (create-tiles (* (get-in @app-state [:grid :rows])
                                                (get-in @app-state [:grid :columns]))))
