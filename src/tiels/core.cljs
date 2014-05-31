@@ -136,7 +136,8 @@
                                      {:bgcolor "cyan"   :color "blue"}
                                      {:bgcolor "red"    :color "white"}
                                      {:bgcolor "pink"   :color "white"}
-                                     {:bgcolor "yellow" :color "red"}]}))
+                                     {:bgcolor "yellow" :color "red"}
+                                     {:bgcolor "#64c7cc" :color "cyan"}]}))
 
 (swap! app-state assoc :tiles (create-tiles (* (get-in @app-state [:grid :rows])
                                                (get-in @app-state [:grid :columns]))))
@@ -148,7 +149,6 @@
          app-state
          {:tx-listen
           (fn [data state]
-            (println "FUCKASDFSD")
             (when-not (= (last @history) @state)
               (swap! history conj (:old-state data))))
           :target (. js/document (getElementById "app"))})
