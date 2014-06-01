@@ -150,7 +150,7 @@
              {:bgcolor "#f7f7f7" :color "#009e4c"}
              {:bgcolor "#e04696" :color "#9c2c4b"}])
 
-(def app-state (atom {:tiles (create-tiles 1500)
+(def app-state (atom {:tiles (create-rand-tiles 1500)
                       :grid {:rows 30 :columns 50}
                       :selected-tile {:bgcolor "cyan"  :color "blue"}
                       :legend-tiles colors}))
