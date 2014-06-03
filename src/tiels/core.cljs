@@ -11,7 +11,6 @@
   (om/update! tile @selected-tile))
 
 (defn make-tile-selected [tile selected-tile]
-  (println "got here")
   (om/update! selected-tile @tile))
 
 (defn undo []
