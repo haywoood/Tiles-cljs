@@ -1,25 +1,31 @@
 (ns tiels.core
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]))
+            [om.dom :as dom :include-macros true]
+            [goog.events :as events]
+            [cljs.core.async :refer [put! chan <!]]))
 
 (enable-console-print!)
 
-(defn make-tile-current [tile _ {:keys [selected-tile] :as opts}]
+(defn make-tile-current [tile selected-tile]
   (om/update! tile @selected-tile))
 
-(defn make-tile-selected [tile _ {:keys [selected-tile] :as opts}]
+(defn make-tile-selected [tile selected-tile]
+  (println "got here")
   (om/update! selected-tile @tile))
 
 (defn undo []
-    (when (> (count @history) 1)
-      (reset! app-state (last @history))
-      (swap! history pop)))
+  (when (> (count @history) 1)
+    (reset! app-state (last @history))
+    (swap! history pop)))
 
-(defn tile [tile owner {:keys [selected-fn selected-tile] :as opts}]
+(defn tile [tile owner {:keys [mouse-chan]}]
   (reify
     om/IRender
     (render [_]
-            (dom/div #js {:onMouseDown #(selected-fn tile owner opts)
+            (dom/div #js {:onMouseEnter #(put! mouse-chan {:tile tile :etype "mouseEnter"})
+                          :onMouseDown #(put! mouse-chan {:tile tile :etype "mouseDown"})
+                          :onMouseUp #(put! mouse-chan {:tile tile :etype "mouseUp"})
                           :style #js {:width 10
                                       :height 17
                                       :backgroundColor (:bgcolor tile)}
@@ -29,16 +35,6 @@
                      (dom/span #js {:className "circle"
                                     :style #js {:backgroundColor (:color tile)}}
                                "")))))
-
-(defn grid [app owner {:keys [width] :as opts}]
-  (reify
-    om/IRender
-    (render [_]
-            (apply dom/div #js {:className "grid"
-                                :style #js {:width width}}
-                   (om/build-all tile (:tiles app)
-                      {:opts {:selected-tile (:selected-tile app)
-                              :selected-fn make-tile-current}})))))
 
 (defn undo-view [_ _]
   (reify
@@ -52,39 +48,51 @@
   (reify
     om/IInitState
     (init-state [_]
-      {:value "#"})
+                {:value "#"})
 
     om/IRenderState
     (render-state [_ state]
-      (let [value (:value state)]
-        (dom/input #js {:className "new-tile"
-                        :value value
-                        :onChange (fn [e]
-                                    (let [new-value (aget e "target" "value")]
-                                      (om/set-state! owner :value new-value)))
-                        :onKeyUp (fn [e]
-                                    (let [return-key (= 13 (aget e "which"))]
-                                      (when return-key
-                                        (do
-                                          (om/set-state! owner :value "")
-                                          (create-fn value)))))})))))
+                  (let [value (:value state)]
+                    (dom/input #js {:className "new-tile"
+                                    :value value
+                                    :onChange (fn [e]
+                                                (let [new-value (aget e "target" "value")]
+                                                  (om/set-state! owner :value new-value)))
+                                    :onKeyUp (fn [e]
+                                               (let [return-key (= 13 (aget e "which"))]
+                                                 (when return-key
+                                                   (do
+                                                     (om/set-state! owner :value "")
+                                                     (create-fn value)))))})))))
 
 
 (defn legend [app owner]
   (reify
-    om/IRender
-    (render [_]
+    om/IInitState
+    (init-state [_]
+                {:mouse-chan (chan)})
+    om/IWillMount
+    (will-mount [_]
+                (let [mouse-chan (om/get-state owner :mouse-chan)]
+                  (go
+                    (loop []
+                      (let [{:keys [tile etype]} (<! mouse-chan)
+                            selected (:selected-tile app)]
+                        (when (= etype "mouseDown")
+                          (make-tile-selected tile selected))
+                        (recur))))))
+    om/IRenderState
+    (render-state [_ {:keys [mouse-chan]}]
             (apply dom/div #js {:className "legend"}
-                     (om/build-all tile (:tiles app)
-                                   {:fn #(assoc % :is-selected-tile (= % (:selected-tile app)))
-                                    :opts {:selected-tile (:selected-tile app)
-                                           :selected-fn make-tile-selected}})))))
+                   (om/build-all tile (:tiles app)
+                                 {:fn #(assoc % :is-selected-tile (= % (:selected-tile app)))
+                                  :opts {:mouse-chan mouse-chan}})))))
 
 (defn toolbar [app owner]
   (reify
     om/IInitState
     (init-state [_]
-       {:creating-new-tile false})
+                {:creating-new-tile false})
 
     om/IRenderState
     (render-state [_ state]
@@ -93,14 +101,14 @@
                                              :selected-tile (:selected-tile app)})
 
                            (dom/div #js {:className "actions"}
-                             (om/build undo-view {})
-                             (dom/div #js {:className (str "new-tile-icon"
-                                                           (when (om/get-state owner :creating-new-tile)
-                                                             " is-active"))
-                                           :onMouseDown
-                                             #(om/set-state! owner :creating-new-tile
-                                               (not (om/get-state owner :creating-new-tile)))}
-                                      "░"))
+                                    (om/build undo-view {})
+                                    (dom/div #js {:className (str "new-tile-icon"
+                                                                  (when (om/get-state owner :creating-new-tile)
+                                                                    " is-active"))
+                                                  :onMouseDown
+                                                  #(om/set-state! owner :creating-new-tile
+                                                                  (not (om/get-state owner :creating-new-tile)))}
+                                             "░"))
 
                            (when (:creating-new-tile state)
                              (om/build new-tile {}
@@ -109,9 +117,43 @@
                                                  (let [legend-tiles (:legend-tiles @app)
                                                        new-legend-tile {:bgcolor value :color "white"}
                                                        new-legend-tiles (conj (:legend-tiles @app)
-                                                                          {:bgcolor value :color "white"})]
+                                                                              {:bgcolor value :color "white"})]
                                                    (when (nil? (some #(= % new-legend-tile) legend-tiles))
                                                      (om/update! app :legend-tiles new-legend-tiles))))}}))))))
+
+(defn grid [app owner {:keys [width]}]
+  (reify
+    om/IInitState
+    (init-state [_]
+                {:mouse-chan (chan)
+                 :dragging false})
+
+    om/IWillMount
+    (will-mount [_]
+                (let [mouse-chan (om/get-state owner :mouse-chan)]
+                  (go
+                   (loop []
+                     (let [{:keys [tile etype]} (<! mouse-chan)
+                           current (:selected-tile app)]
+                       (when (= etype "mouseDown")
+                         (make-tile-current tile current)
+                         (om/set-state! owner :dragging true))
+                       (when (= etype "mouseUp")
+                         (om/set-state! owner :dragging false))
+                       (when (= etype "mouseEnter")
+                         (let [dragging (om/get-state owner :dragging)]
+                           (when dragging
+                             (make-tile-current tile current))))
+                       (recur))))))
+
+    om/IRenderState
+    (render-state [_ {:keys [mouse-chan]}]
+                  (apply dom/div #js {:className "grid"
+                                      :style #js {:width width}}
+                         (om/build-all tile (:tiles app)
+                                       {:opts {:mouse-chan mouse-chan}})))))
+
+
 
 ;; Component that initializes the UI
 (defn app-view [app owner]
@@ -150,7 +192,7 @@
              {:bgcolor "#f7f7f7" :color "#009e4c"}
              {:bgcolor "#e04696" :color "#9c2c4b"}])
 
-(def app-state (atom {:tiles (create-rand-tiles 1500)
+(def app-state (atom {:tiles (create-tiles 1500)
                       :grid {:rows 30 :columns 50}
                       :selected-tile {:bgcolor "cyan"  :color "blue"}
                       :legend-tiles colors}))
