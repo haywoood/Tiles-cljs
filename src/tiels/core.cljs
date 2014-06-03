@@ -133,16 +133,14 @@
                   (go
                    (loop []
                      (let [{:keys [tile etype]} (<! mouse-chan)
-                           current (:selected-tile app)]
-                       (when (= etype "mouseDown")
-                         (make-tile-current tile current)
-                         (om/set-state! owner :dragging true))
-                       (when (= etype "mouseUp")
-                         (om/set-state! owner :dragging false))
-                       (when (= etype "mouseEnter")
-                         (let [dragging (om/get-state owner :dragging)]
-                           (when dragging
-                             (make-tile-current tile current))))
+                           current (:selected-tile app)
+                           dragging (om/get-state owner :dragging)]
+                       (case etype
+                         "mouseDown" (do
+                                       (make-tile-current tile current)
+                                       (om/set-state! owner :dragging true))
+                         "mouseUp" (om/set-state! owner :dragging false)
+                         "mouseEnter" (when dragging (make-tile-current tile current)))
                        (recur))))))
 
     om/IRenderState
