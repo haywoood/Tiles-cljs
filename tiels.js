@@ -9,4 +9,5 @@ goog.addDependency("../cljs/core/async/impl/dispatch.js", ['cljs.core.async.impl
 goog.addDependency("../cljs/core/async/impl/channels.js", ['cljs.core.async.impl.channels'], ['cljs.core.async.impl.buffers', 'cljs.core', 'cljs.core.async.impl.dispatch', 'cljs.core.async.impl.protocols']);
 goog.addDependency("../cljs/core/async/impl/timers.js", ['cljs.core.async.impl.timers'], ['cljs.core', 'cljs.core.async.impl.channels', 'cljs.core.async.impl.dispatch', 'cljs.core.async.impl.protocols']);
 goog.addDependency("../cljs/core/async.js", ['cljs.core.async'], ['cljs.core.async.impl.ioc_helpers', 'cljs.core.async.impl.buffers', 'cljs.core', 'cljs.core.async.impl.channels', 'cljs.core.async.impl.dispatch', 'cljs.core.async.impl.protocols', 'cljs.core.async.impl.timers']);
-goog.addDependency("../tiels/core.js", ['tiels.core'], ['cljs.core', 'om.core', 'om.dom', 'cljs.core.async', 'goog.events']);
+goog.addDependency("../tiels/components/grid.js", ['tiels.components.grid'], ['cljs.core', 'om.core', 'om.dom', 'cljs.core.async']);
+goog.addDependency("../tiels/core.js", ['tiels.core'], ['cljs.core', 'om.core', 'tiels.components.grid', 'om.dom', 'cljs.core.async', 'goog.events']);

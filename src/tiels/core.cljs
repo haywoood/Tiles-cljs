@@ -3,12 +3,11 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [goog.events :as events]
-            [cljs.core.async :refer [put! chan <!]]))
+            [cljs.core.async :refer [put! chan <!]]
+            [tiels.components.grid :refer [grid-component]]))
 
 (enable-console-print!)
 
-(defn make-tile-current [tile selected-tile]
-  (om/update! tile @selected-tile))
 
 (defn make-tile-selected [tile selected-tile]
   (om/update! selected-tile @tile))
@@ -120,35 +119,7 @@
                                                    (when (nil? (some #(= % new-legend-tile) legend-tiles))
                                                      (om/update! app :legend-tiles new-legend-tiles))))}}))))))
 
-(defn grid [app owner {:keys [width]}]
-  (reify
-    om/IInitState
-    (init-state [_]
-                {:mouse-chan (chan)
-                 :dragging false})
 
-    om/IWillMount
-    (will-mount [_]
-                (let [mouse-chan (om/get-state owner :mouse-chan)]
-                  (go
-                   (loop []
-                     (let [{:keys [tile etype]} (<! mouse-chan)
-                           current (:selected-tile app)
-                           dragging (om/get-state owner :dragging)]
-                       (case etype
-                         "mouseDown" (do
-                                       (make-tile-current tile current)
-                                       (om/set-state! owner :dragging true))
-                         "mouseUp" (om/set-state! owner :dragging false)
-                         "mouseEnter" (when dragging (make-tile-current tile current)))
-                       (recur))))))
-
-    om/IRenderState
-    (render-state [_ {:keys [mouse-chan]}]
-                  (apply dom/div #js {:className "grid"
-                                      :style #js {:width width}}
-                         (om/build-all tile (:tiles app)
-                                       {:opts {:mouse-chan mouse-chan}})))))
 
 
 
@@ -159,8 +130,8 @@
     (render [_]
             (dom/div #js {:style #js {:display "flex"}}
                      (om/build toolbar app)
-                     (om/build grid {:tiles (:tiles app)
-                                     :selected-tile (:selected-tile app)}
+                     (om/build grid-component {:tiles (:tiles app)
+                                               :selected-tile (:selected-tile app)}
                                {:opts {:width (* 10
                                                  (get-in app [:grid :columns]))}})))))
 
